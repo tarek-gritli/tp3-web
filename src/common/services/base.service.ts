@@ -30,6 +30,6 @@ export abstract class BaseService<T extends ObjectLiteral> {
 
   async delete(id: number): Promise<void> {
     const entity = await this.findOne(id);
-    await this.repository.remove(entity);
+    await this.repository.softRemove(entity);
   }
 }
