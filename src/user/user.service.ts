@@ -3,13 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { BaseService } from 'src/common/services/base.service';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -17,8 +15,8 @@ export class UserService extends BaseService<User> {
     super(userRepo);
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const { email, username, password } = createUserDto;
+  async create(registerUserDto: RegisterUserDto) {
+    const { email, username } = registerUserDto;
 
     const existingUser = await this.userRepo.findOne({
       where: [{ username }, { email }],
@@ -30,20 +28,15 @@ export class UserService extends BaseService<User> {
       );
     }
 
-    const hashedPassword: string = await bcrypt.hash(password, 10);
-
-    const user = this.userRepo.create({
-      email,
-      password: hashedPassword,
-      username,
-    });
+    const user = this.userRepo.create(registerUserDto);
 
     return this.userRepo.save(user);
   }
 
-  async findByEmailOrUsername(key: 'email' | 'username', value: string) {
-    const user = await this.userRepo.findOne({ where: { [key]: value } });
-    if (!user) throw new NotFoundException(`User with this ${key} not found`);
+  async findByUsername(username: string) {
+    const user = await this.userRepo.findOne({ where: { username } });
+    if (!user)
+      throw new NotFoundException(`User with this ${username} not found`);
     return user;
   }
 }
