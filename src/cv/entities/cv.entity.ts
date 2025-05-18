@@ -1,6 +1,6 @@
-import { BaseEntity } from 'src/common/entities/base.entity';
-import { Skill } from 'src/skill/entities/skill.entity';
-import { User } from 'src/user/entities/user.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
+import { Skill } from '../../skill/entities/skill.entity';
+import { User } from '../../user/entities/user.entity';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 
 @Entity('cvs')
