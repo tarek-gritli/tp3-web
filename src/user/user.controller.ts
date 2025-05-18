@@ -6,10 +6,19 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/roles/roles.guard';
+import { RolesDecorator } from 'src/roles/roles.decorator';
+import { Roles } from 'src/auth/enums/auth.enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@RolesDecorator(Roles.admin)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

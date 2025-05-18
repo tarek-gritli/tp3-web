@@ -9,4 +9,11 @@ export class CvService extends BaseService<Cv> {
   constructor(@InjectRepository(Cv) private readonly cvRepo: Repository<Cv>) {
     super(cvRepo);
   }
+
+  findAllByUserId(userId: number) {
+    return this.cvRepo.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+  }
 }
