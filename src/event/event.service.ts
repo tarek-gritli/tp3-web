@@ -20,7 +20,11 @@ export class EventService {
   @OnEvent(EventType.UPDATE)
   @OnEvent(EventType.DELETE)
   async createEvent(createEventDto: CreateEventDto) {
-    const event = this.eventRepo.create(createEventDto);
+    const event = this.eventRepo.create({
+      ...createEventDto,
+      cv: { id: createEventDto.cvId },
+      user: { id: createEventDto.userId },
+    });
 
     const savedEvent = await this.eventRepo.save(event);
 
