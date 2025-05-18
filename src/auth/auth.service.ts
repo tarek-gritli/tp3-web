@@ -1,9 +1,10 @@
 import { LoginDto } from './dto/login.dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { Roles } from './enums/auth.enum';
 
 @Injectable()
 export class AuthService {
@@ -55,5 +56,20 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  getUserFromToken(token: string) {
+    try {
+      const decoded: { sub: number; username: string; role: Roles } =
+        this.jwtService.verify(token);
+
+      return {
+        userId: decoded.sub,
+        username: decoded.username,
+        role: decoded.role,
+      };
+    } catch (error) {
+      throw new UnauthorizedException(error, 'Invalid token');
+    }
   }
 }

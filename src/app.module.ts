@@ -10,6 +10,8 @@ import { Cv } from './cv/entities/cv.entity';
 import { Skill } from './skill/entities/skill.entity';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { EventModule } from './event/event.module';
+import { Event } from './event/entities/event.entity';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [Cv, Skill, User],
+        entities: [Cv, Skill, User, Event],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -33,6 +35,7 @@ import { AuthModule } from './auth/auth.module';
     UserModule,
     SkillModule,
     AuthModule,
+    EventModule,
   ],
   controllers: [AppController],
   providers: [AppService],

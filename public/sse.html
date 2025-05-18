@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CV Manager</title>
+    <style>
+      /* Base styles */
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+          Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        background-color: #f9f9f9;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .page-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin: 0;
+      }
+      /* Notification styles */
+      .notifications-container {
+        margin-top: 1rem;
+      }
+      .notification-item {
+        background-color: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: flex-start;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .notification-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .notification-icon {
+        margin-right: 12px;
+        margin-top: 4px;
+      }
+      .notification-text {
+        flex: 1;
+      }
+      .notification-message {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0 0 4px 0;
+      }
+      .notification-time {
+        font-size: 12px;
+        color: #6b7280;
+        margin: 0;
+      }
+      .status-message {
+        padding: 16px;
+        text-align: center;
+        color: #6b7280;
+      }
+      .error-message {
+        padding: 16px;
+        text-align: center;
+        color: #e53e3e;
+      }
+      /* Icons */
+      .icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+      }
+      .icon-add {
+        stroke: #16a34a;
+        fill: none;
+      }
+      .icon-edit {
+        stroke: #2563eb;
+        fill: none;
+      }
+      .icon-delete {
+        stroke: #dc2626;
+        fill: none;
+      }
+      .icon-alert {
+        stroke: #6b7280;
+        fill: none;
+      }
+      /* Main content */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+      .card {
+        background-color: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+      /* Authentication form */
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .form-label {
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+      .form-input {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 1rem;
+        width: 100%;
+      }
+      .auth-button {
+        padding: 0.5rem 1rem;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        max-width: 150px;
+      }
+      .auth-button:hover {
+        background-color: #2563eb;
+      }
+      .auth-button:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+      }
+      .auth-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+      }
+      .status-authenticated {
+        color: #16a34a;
+      }
+      .status-unauthenticated {
+        color: #dc2626;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="page-title">CV Manager</h1>
+    </header>
+    <main class="container">
+      <div class="card">
+        <h2 class="card-title">Welcome to CV Manager</h2>
+        <p>
+          This is a simple CV management system. You will see events below when
+          CVs are created, updated, or deleted.
+        </p>
+
+        <div class="auth-form">
+          <div class="form-group">
+            <label for="token-input" class="form-label"
+              >Authentication Token</label
+            >
+            <input
+              type="password"
+              id="token-input"
+              class="form-input"
+              placeholder="Enter your authentication token"
+            />
+          </div>
+          <button id="auth-button" class="auth-button">Authenticate</button>
+          <div class="auth-status" id="auth-status">
+            <span class="status-unauthenticated">Not authenticated</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Recent Events</h2>
+        <div id="notifications-container" class="notifications-container">
+          <div class="status-message">
+            No events yet. Authenticate to see events.
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Event type enum
+      const EventType = {
+        ADD: 'cv.add',
+        UPDATE: 'cv.update',
+        DELETE: 'cv.delete',
+      };
+
+      // DOM elements
+      const tokenInput = document.getElementById('token-input');
+      const authButton = document.getElementById('auth-button');
+      const authStatus = document.getElementById('auth-status');
+      const notificationsContainer = document.getElementById(
+        'notifications-container',
+      );
+
+      // State variables
+      let notifications = [];
+      let isAuthenticated = false;
+      let eventSource = null;
+
+      // Check if token exists in localStorage on page load
+      document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          tokenInput.value = token;
+          authenticate();
+        }
+      });
+
+      // Authentication handler
+      authButton.addEventListener('click', authenticate);
+
+      async function authenticate() {
+        const token = tokenInput.value.trim();
+
+        if (!token) {
+          updateAuthStatus(false, 'Please enter a token');
+          return;
+        }
+
+        // Store token in localStorage
+        localStorage.setItem('token', token);
+
+        try {
+          // Verify the token by trying to fetch notifications
+          const response = await fetch('/event/history', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Invalid token');
+          }
+
+          // Token is valid
+          updateAuthStatus(true);
+          isAuthenticated = true;
+
+          // Fetch notifications and initialize event source
+          fetchNotifications();
+          if (eventSource) {
+            eventSource.close();
+          }
+          initializeEventSource();
+        } catch (error) {
+          console.error('Authentication error:', error);
+          updateAuthStatus(false, 'Authentication failed');
+          localStorage.removeItem('token');
+          isAuthenticated = false;
+        }
+      }
+
+      function updateAuthStatus(status, message) {
+        if (status) {
+          authStatus.innerHTML = `<span class="status-authenticated">Authenticated</span>`;
+          authButton.textContent = 'Refresh Token';
+        } else {
+          authStatus.innerHTML = `<span class="status-unauthenticated">${message || 'Not authenticated'}</span>`;
+          authButton.textContent = 'Authenticate';
+        }
+      }
+
+      // Get notification icon based on event type
+      function getEventIcon(type) {
+        switch (type) {
+          case EventType.ADD:
+            return `<svg class="icon icon-add" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>`;
+          case EventType.UPDATE:
+            return `<svg class="icon icon-edit" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>`;
+          case EventType.DELETE:
+            return `<svg class="icon icon-delete" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>`;
+          default:
+            return `<svg class="icon icon-alert" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>`;
+        }
+      }
+
+      // Get notification message based on event type
+      function getEventMessage(event) {
+        switch (event.type) {
+          case EventType.ADD:
+            return `User ${event.userId} created cv ${event.cvId}`;
+          case EventType.UPDATE:
+            return `User ${event.userId} updated cv ${event.cvId}`;
+          case EventType.DELETE:
+            return `User${event.userId} deleted cv ${event.cvId}`;
+          default:
+            return `User ${event.userId} performed an action on cv ${event.cvId}`;
+        }
+      }
+
+      // Format date for display
+      function formatDate(dateString) {
+        try {
+          const date = new Date(dateString);
+          return date.toLocaleString();
+        } catch (e) {
+          console.error('Error formatting date:', e);
+          return 'Just now';
+        }
+      }
+
+      // Create a notification element
+      function createNotificationElement(event) {
+        const notification = document.createElement('div');
+        notification.className = 'notification-item';
+        notification.innerHTML = `
+          <div class="notification-icon">
+            ${getEventIcon(event.type)}
+          </div>
+          <div class="notification-text">
+            <p class="notification-message">${getEventMessage(event)}</p>
+            <p class="notification-time">${formatDate(event.createdAt)}</p>
+          </div>
+        `;
+        return notification;
+      }
+
+      // Render notifications list
+      function renderNotifications() {
+        if (notifications.length === 0) {
+          notificationsContainer.innerHTML =
+            '<div class="status-message">No events yet</div>';
+          return;
+        }
+
+        notificationsContainer.innerHTML = '';
+        notifications.forEach((event) => {
+          notificationsContainer.appendChild(createNotificationElement(event));
+        });
+      }
+
+      // Fetch notifications from the API
+      async function fetchNotifications() {
+        if (!isAuthenticated) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+          notificationsContainer.innerHTML =
+            '<div class="status-message">Loading events...</div>';
+
+          const response = await fetch('/event/history', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch events');
+          }
+
+          notifications = await response.json();
+          renderNotifications();
+        } catch (error) {
+          console.error('Error fetching events:', error);
+          notificationsContainer.innerHTML =
+            '<div class="error-message">Failed to load events</div>';
+
+          // If authentication error, reset auth status
+          if (error.message.includes('401') || error.message.includes('403')) {
+            updateAuthStatus(false, 'Token expired or invalid');
+            isAuthenticated = false;
+          }
+        }
+      }
+
+      // Initialize event source for real-time updates
+      function initializeEventSource() {
+        if (!isAuthenticated) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        // Close existing event source if any
+        if (eventSource) {
+          eventSource.close();
+        }
+
+        // Create new EventSource with token
+        eventSource = new EventSource(
+          `/cv/events?token=${encodeURIComponent(token)}`,
+        );
+
+        eventSource.onmessage = (event) => {
+          try {
+            const newEvent = JSON.parse(event.data);
+            notifications = [newEvent, ...notifications];
+            // Add new notification at the top of the container
+            notificationsContainer.prepend(createNotificationElement(newEvent));
+            // Remove "no events" message if it exists
+            const statusMessage =
+              notificationsContainer.querySelector('.status-message');
+            if (statusMessage) {
+              statusMessage.remove();
+            }
+          } catch (error) {
+            console.error('Error processing event:', error);
+          }
+        };
+
+        eventSource.onerror = () => {
+          console.error('SSE connection error');
+          eventSource.close();
+          // Try to reconnect after 5 seconds
+          setTimeout(() => {
+            console.log('Attempting to reconnect to event stream...');
+            initializeEventSource();
+          }, 5000);
+        };
+      }
+    </script>
+  </body>
+</html>
