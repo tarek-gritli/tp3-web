@@ -1,19 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
 import { Repository } from 'typeorm';
 import { EventType } from './event.enum';
-import { Subject } from 'rxjs';
 import { Roles } from 'src/auth/enums/auth.enum';
 
 @Injectable()
 export class EventService {
-  private events = new Subject<any>();
-
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @OnEvent(EventType.ADD)
@@ -27,12 +25,6 @@ export class EventService {
     });
 
     const savedEvent = await this.eventRepo.save(event);
-
-    this.events.next({
-      ...savedEvent,
-      cvId: createEventDto.cvId,
-      userId: createEventDto.userId,
-    });
 
     return savedEvent;
   }
@@ -51,7 +43,7 @@ export class EventService {
     return queryBuilder.orderBy('event.createdAt', 'DESC').getMany();
   }
 
-  subscribeToEvents() {
-    return this.events.asObservable();
+  getEventEmitter() {
+    return this.eventEmitter;
   }
 }
