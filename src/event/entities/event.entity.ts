@@ -23,6 +23,9 @@ export class Event {
   @ManyToOne(() => User, { eager: true })
   user: User;
 
+  @Column({ nullable: true, type: 'json' })
+  details: any;
+
   @CreateDateColumn()
   createdAt: Date;
 }

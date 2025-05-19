@@ -32,12 +32,27 @@ export class CvService extends BaseService<Cv> {
   }
 
   async updateCv(cvId: number, updateCvDto: UpdateCvDto, userId: number) {
+    const oldCv = await this.findOne(cvId);
+
     const cv = await this.update(cvId, updateCvDto);
+
+    const details = {};
+    for (const key in updateCvDto) {
+      if (oldCv[key] != updateCvDto[key]) {
+        details[key] = {
+          oldValue: oldCv[key],
+          newValue: updateCvDto[key],
+        };
+      }
+    }
+
     const payload = {
       type: EventType.UPDATE,
       cvId,
       userId,
+      details,
     };
+
     console.log('Emitting event:', payload);
     this.eventEmitter.emit(EventType.UPDATE, payload);
     return cv;

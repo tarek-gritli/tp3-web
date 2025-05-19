@@ -341,7 +341,7 @@
       // Format date for display
       function formatDate(dateString) {
         try {
-          const date = new Date(dateString);
+          const date = new Date(dateString || Date.now());
           return date.toLocaleString();
         } catch (e) {
           console.error('Error formatting date:', e);
@@ -428,9 +428,7 @@
         }
 
         // Create new EventSource with token
-        eventSource = new EventSource(
-          `/cv/events?token=${encodeURIComponent(token)}`,
-        );
+        eventSource = new EventSource(`/cv/events?token=${token}`);
 
         eventSource.onmessage = (event) => {
           try {

@@ -25,6 +25,7 @@ import { EventService } from 'src/event/event.service';
 import { filter, fromEvent, map, merge, Observable } from 'rxjs';
 import { AuthService } from 'src/auth/auth.service';
 import { EventType } from 'src/event/event.enum';
+import { CreateEventDto } from 'src/event/dto/create-event.dto';
 
 @Controller('cv')
 export class CvController {
@@ -78,7 +79,7 @@ export class CvController {
     );
 
     return merge(addEvents, updateEvents, deleteEvents).pipe(
-      filter((event: {}) => {
+      filter((event: CreateEventDto) => {
         return user.role === Roles.admin || event.userId === user.userId;
       }),
       map((event) => {

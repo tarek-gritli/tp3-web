@@ -22,6 +22,7 @@ export class EventService {
       ...createEventDto,
       cv: { id: createEventDto.cvId },
       user: { id: createEventDto.userId },
+      details: createEventDto.details ?? null,
     });
 
     const savedEvent = await this.eventRepo.save(event);
